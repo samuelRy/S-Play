@@ -1,0 +1,40 @@
+# depslib dependency file v1.0
+1754012559 source:c:\users\elija\desktop\miniaudiotest\main.cpp
+	<iostream>
+	"miniaudio.c"
+	<windows.h>
+	<vector>
+	<conio.h>
+	<future>
+	<chrono>
+	<fstream>
+
+1753918180 c:\users\elija\desktop\miniaudiotest\miniaudio.c
+	"miniaudio.h"
+
+1755263999 source:c:\users\elija\desktop\s-play\miniaudiotest\main.cpp
+	<iostream>
+	"miniaudio.c"
+	<windows.h>
+	<vector>
+	<conio.h>
+	<future>
+	<chrono>
+	<fstream>
+
+1753918180 c:\users\elija\desktop\s-play\miniaudiotest\miniaudio.c
+	"miniaudio.h"
+
+1755307741 source:c:\users\elija\desktop\s-play\miniaudiotest\fft.c
+	"miniaudio.c"
+	"stdlib.h"
+	"stdio.h"
+	"stdint.h"
+	<windows.h>
+	<conio.h>
+	"stdlib.h"
+	<stdio.h>
+	"math.h"
+	<stdbool.h>
+	"complex.h"
+

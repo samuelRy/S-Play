@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
+import 'package:s_play/music_data.dart';
 
 class BackgroundWidget extends StatefulWidget {
   const BackgroundWidget({super.key});
@@ -9,30 +12,48 @@ class BackgroundWidget extends StatefulWidget {
 }
 
 class _BackgroundWidgetState extends State<BackgroundWidget> {
+
+  @override
+  void initState() {
+    super.initState();
+    initBack();
+  }
+
+  void initBack() async {
+     WidgetsBinding.instance.addPostFrameCallback((_) async {
+    ByteData bytesData = await rootBundle.load("assets/icons/music.png");
+      if (mounted){
+        setState(() {
+  backU8List.value = bytesData.buffer.asUint8List();
+          
+        });
+      }
+     });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(200),
-          child: AppBar(
-            titleSpacing:5,
-            flexibleSpace: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              spacing: 5,
-              children: [
-                SvgPicture.asset(
-                  "assets/icons/SMusic_icon.svg",
-                  width: 80,
-                  height: 80,
-                ),
-              ],
+    
+    return ValueListenableBuilder(
+      valueListenable: currentMusic,
+      builder: (context, value, child) {
+        return Stack(children: [
+          Center(child: Opacity(opacity: 0.15, child: Container(child: currentMusic.value.$1==-1?Image.asset("assets/icons/music.png"):
+          Center(
+            child: Transform.scale(scale: 2,child: Image.memory(currentMusic.value.$3, fit: BoxFit.cover)),
+          )
+          ))),
+          BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaY: 5,
+              sigmaX: 5,
+            ),
+            child: Container(
+              color: Colors.transparent,
             ),
           ),
-        ),
-      ),
+        ],);
+      }
     );
   }
 }

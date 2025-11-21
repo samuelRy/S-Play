@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-class MusicControlPanalWidget extends StatefulWidget {
-  const MusicControlPanalWidget({super.key});
+class MusicControlpanelWidget extends StatefulWidget {
+  const MusicControlpanelWidget({super.key});
 
   @override
-  State<MusicControlPanalWidget> createState() =>
-      _MusicControlPanalWidgetState();
+  State<MusicControlpanelWidget> createState() =>
+      _MusicControlpanelWidgetState();
 }
 
-class _MusicControlPanalWidgetState extends State<MusicControlPanalWidget> {
+class _MusicControlpanelWidgetState extends State<MusicControlpanelWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +57,7 @@ class _MusicControlPanalWidgetState extends State<MusicControlPanalWidget> {
                               vertical: 5,
                               horizontal: 5,
                             ),
-                            icon: SvgPicture.asset("assets/icons/shuffle.svg"),
+                            icon: Image.asset("assets/icons/shuffle.png"),
                             onPressed: () {},
                           ),
                         ),
@@ -82,7 +81,7 @@ class _MusicControlPanalWidgetState extends State<MusicControlPanalWidget> {
                               ),
                             ),
                             constraints: BoxConstraints(),
-                            icon: SvgPicture.asset("assets/icons/arrow-up.svg", width: 10, height: 20),
+                            icon: Image.asset("assets/icons/arrow-up.png", width: 10, height: 20),
                             onPressed: () {},
                           ),
                         ),
@@ -93,23 +92,23 @@ class _MusicControlPanalWidgetState extends State<MusicControlPanalWidget> {
                     children: [
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/previous.svg"),
+                        icon: Image.asset("assets/icons/previous.png"),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/backward.svg"),
+                        icon: Image.asset("assets/icons/backward.png"),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/play.svg"),
+                        icon: Image.asset("assets/icons/play.png"),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/forward.svg"),
+                        icon: Image.asset("assets/icons/forward.png"),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/next.svg"),
+                        icon: Image.asset("assets/icons/next.png"),
                       ),
                     ],
                   ),
@@ -117,15 +116,15 @@ class _MusicControlPanalWidgetState extends State<MusicControlPanalWidget> {
                     children: [
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/listening_play.svg"),
+                        icon: Image.asset("assets/icons/listening_play.png"),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/settings.svg"),
+                        icon: Image.asset("assets/icons/settings.png"),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: SvgPicture.asset("assets/icons/lyrics.svg"),
+                        icon: Image.asset("assets/icons/lyrics.png"),
                       ),
                     ],
                   ),

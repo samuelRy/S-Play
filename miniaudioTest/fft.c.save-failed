@@ -1,0 +1,318 @@
+#include "miniaudio.c"
+#include "stdlib.h"
+#include "stdio.h"
+#include "stdint.h"
+#include <windows.h>
+#include <conio.h>
+#include "stdlib.h"
+#include <stdio.h>
+#include "math.h"
+#include <stdbool.h>
+#include "complex.h"
+#define pi M_PI
+#define forV(x) for(int x=0; x<n; x++)
+#define forVN(x, n) for(int x=0; x<n; x++)
+#define ARRAY_LEN(x) sizeof(x) / sizeof(x[0])
+#define MIN(a, b) (a<b)? a : b
+#define MAX(a, b) (a>b)? a : b
+#define SPACE 32
+#define ESCAPE 27
+#define RIGHT 77
+#define LEFT 75
+#define UP 72
+#define DOWN 80
+
+void fft(int sampleSize, complex float* samples, complex float*outPut);
+ma_uint32 frames[4410];
+int frameC;
+ma_result result;
+ma_decoder decoder;
+ma_device_config deviceConfig;
+ma_device device;
+ma_uint64 cursor;
+ma_uint64 length;
+bool br = true;
+
+/*void seek_relative(ma_device* device, ma_decoder* decoder, int seconds) {
+    ma_uint64 cursor, length;
+    ma_decoder_get_cursor_in_pcm_frames(decoder, &cursor);
+    ma_decoder_get_length_in_pcm_frames(decoder, &length);
+    ma_uint64 delta = decoder->outputSampleRate * seconds;
+
+    ma_uint64 target = (seconds > 0)
+        ? std::min(cursor + delta, length)
+        : (cursor > delta ? cursor - delta : 0);
+
+    cout << "cursor: " << cursor << ", frameTarget:" << target << endl;
+    ma_device_stop(device);
+    ma_decoder_seek_to_pcm_frame(decoder, target);
+    ma_device_start(device);
+}
+*/
+
+
+
+int test(const char* text)
+{
+    return fprintf(stderr, "%s\n", text);
+}
+
+void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
+{
+    ma_decoder* pDecoder = (ma_decoder*)pDevice->pUserData;
+    frameC = frameCount;
+//    printf(" FrameCount:%u", frameCount);
+    if(pDecoder==NULL)
+    {
+        return;
+    }
+
+    ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, NULL);
+    memcpy(frames, pOutput, sizeof(ma_uint32)*frameCount);
+
+    (void)pInput;
+}
+
+int initializeSoundData(const char* filepath)
+{
+
+
+    result = ma_decoder_init_file(filepath, NULL, &decoder);
+    if(result != MA_SUCCESS)
+    {
+        //string ch = "Failed to initialize " + filepath + "\n";
+        char* ch = (char*)filepath;
+        snprintf(ch, sizeof(ch), "Failed to initialize %s", ch);
+        return -1;
+    }
+
+    deviceConfig = ma_device_config_init(ma_device_type_playback);
+    deviceConfig.playback.format = decoder.outputFormat;
+    deviceConfig.playback.channels = decoder.outputChannels;
+    deviceConfig.sampleRate = decoder.outputSampleRate;
+    deviceConfig.dataCallback = data_callback;
+    deviceConfig.pUserData = &decoder;
+    return 1;
+}
+
+void disposeSoundData()
+{
+    ma_device_uninit(&device);
+    ma_decoder_uninit(&decoder);
+}
+
+void modifyVolume(bool increase)
+{
+    float volume;
+    ma_device_get_master_volume(&device, &volume);
+    volume += increase ? 0.1 : -0.1;
+    if(volume>=0.0f && volume<=1.0f)
+    {
+
+        ma_device_set_master_volume(&device, volume);
+        Sleep(200);
+    }
+}
+
+void seekFrames(bool increase)
+{
+    ma_device_stop(&device);
+    Sleep(50);
+    ma_decoder_get_cursor_in_pcm_frames(&decoder, &cursor);
+    ma_uint64 secondsFrames = 10*decoder.outputSampleRate;
+    ma_uint64 frameTarget = increase ? MIN(cursor +  secondsFrames, length) : MAX(cursor -  secondsFrames, (ma_uint64)0);
+    ma_decoder_seek_to_pcm_frame(&decoder, frameTarget);
+    ma_device_start(&device);
+    Sleep(50);
+    Sleep(700);
+}
+
+void pauseSound(bool notPlaying)
+{
+    notPlaying ? ma_device_start(&device) : ma_device_stop(&device);
+}
+
+int startPlayback()
+{
+    if(ma_device_init(NULL, &deviceConfig, &device)!= MA_SUCCESS)
+    {
+        printf("Failed to initialize the playback device\n");
+        return -2;
+    }
+
+    if(ma_device_start(&device)!= MA_SUCCESS)
+    {
+        printf("Failed to start the playback device\n");
+        return -3;
+    }
+
+    ma_decoder_get_length_in_pcm_frames(&decoder, &length);
+
+    Sleep(1000);
+
+    bool pause = false;
+    while(br)
+    {
+
+        int ch = getch();
+        if(ch == SPACE)
+        {
+            if(pause)
+            {
+                pauseSound(pause);
+            }
+            else
+            {
+                ma_device_stop(&device);
+            }
+            pause = !pause;
+            Sleep(200);
+        }
+        else if(ch == 224)
+        {
+            ch = getch();
+            if(ch == RIGHT)
+            {
+                ma_device_stop(&device);
+                Sleep(50);
+                ma_decoder_get_cursor_in_pcm_frames(&decoder, &cursor);
+                ma_uint64 secondsFrames = 10*decoder.outputSampleRate;
+                ma_uint64 frameTarget = cursor < (length - secondsFrames) ? cursor +  secondsFrames : length;
+                ma_decoder_seek_to_pcm_frame(&decoder, frameTarget);
+                ma_device_start(&device);
+                Sleep(50);
+                Sleep(700);
+            }
+            else if(ch == LEFT)
+            {
+                ma_device_stop(&device);
+                Sleep(50);
+                ma_decoder_get_cursor_in_pcm_frames(&decoder, &cursor);
+                ma_uint64 secondsFrames = 10*decoder.outputSampleRate;
+                ma_uint64 frameTarget = cursor > (secondsFrames) ? cursor -  secondsFrames : 0;
+                ma_decoder_seek_to_pcm_frame(&decoder, frameTarget);
+                ma_device_start(&device);
+                Sleep(50);
+                Sleep(700);
+            }
+            else if(ch == UP)
+            {
+                modifyVolume(true);
+            }
+            else if(ch == DOWN)
+            {
+                modifyVolume(false);
+            }
+        }
+        else if(ch == ESCAPE)
+        {
+            br = false;
+            Sleep(200);
+        }
+        Sleep(200);
+
+
+        Sleep(500);
+
+if(cursor > length-100) return 5;
+    }
+    return 1;
+}
+
+
+void fft(int sampleSize, complex float* samples, complex float*outPut)
+{
+    printf("Hello Fast Fourier Transform!!!\n");
+int n = sampleSize;
+    if(sampleSize<1)
+    {
+        return samples;
+    }
+    complex float even[sampleSize/2], odd[sampleSize/2];
+    forVN(i, n)
+    {
+        if(i%2==0)
+        {
+            even[i/2] = samples[i];
+        }
+        else
+        {
+            odd[i/2] = samples[i];
+        }
+    }
+
+
+    //float waveFunction[n];
+    complex float freq[n], frequenceAmplitude[n];
+    /*forV(i)
+    {
+        waveFunction[i] = sinf(2*pi*i/n) + cosf(2*pi*i/n);
+    }*/
+    forVN(i, n/2)
+    {
+        freq[i] = 0;
+        forVN(j, n/2)
+        {
+            float t = (float) j/n;
+            freq[i] += odd[j] * cexpf(2*pi*i*I*t);
+            //printf("%f %f\n", creal(waveFunction[j] * cexpf(2*pi*i*I*t)), cimag(waveFunction[j] * cexpf(2*pi*i*I*t)));
+        }
+        printf("\n");
+        frequenceAmplitude[i] = even[i] + freq[i];
+        frequenceAmplitude[i+n/2] += even[i] - freq[i];
+        printf("%f %f ", creal(frequenceAmplitude[i]), cimag(frequenceAmplitude[i]));
+    }
+
+    outPut = frequenceAmplitude;
+}
+
+
+int main()
+{
+    // dft(8);
+    float ex[10];
+    forVN(i, 10)
+    {
+        ex[i] = sinf(2*pi*4*i);
+    }
+    complex float* fl;
+    fft(ARRAY_LEN(ex), ex, fl);
+    /*initializeSoundData("./sound.mp3");
+    startPlayback();
+    disposeSoundData();*/
+    return 0;
+}
+
+/*void dft(int sampleSize)
+{
+    printf("Hello Discrete Fourier Transform!!!\n");
+
+    int n = sampleSize;
+    //float frequenceAmplitudeSin[n], frequenceAmplitudeCos[n];
+    complex float frequenceAmplitude[n];
+    float waveFunction[n];
+    forV(i)
+    {
+        waveFunction[i] = sinf(2*pi*i/n) + cosf(2*pi*i/n);
+    }
+    forV(i)
+    {
+        //frequenceAmplitudeSin[i] = 0;
+        //frequenceAmplitudeCos[i] = 0;
+        frequenceAmplitude[i] = 0;
+        forV(j)
+        {
+            float t = (float) j/n;
+            frequenceAmplitude[i] += waveFunction[j] * cexpf(2*pi*I*i*t);
+            //frequenceAmplitudeSin[i] += waveFunction[j] * sinf(2*pi*i*t);
+            //frequenceAmplitudeCos[i] += waveFunction[j] * cosf(2*pi*i*t);
+        }
+        //printf("%f %f ", frequenceAmplitudeSin[i], frequenceAmplitudeCos[i]);
+        printf("%f %f\n", creal(frequenceAmplitude[i]), cimag(frequenceAmplitude[i]));
+    }
+    float frequenceAmplitude[2];
+    frequenceAmplitude[0] = frequenceAmplitudeSin;
+    frequenceAmplitude[0] = frequenceAmplitudeCos;
+//    return frequenceAmplitude;
+}
+*/
