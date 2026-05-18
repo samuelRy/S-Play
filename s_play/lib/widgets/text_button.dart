@@ -1,5 +1,5 @@
+import 'package:audiotags/audiotags.dart';
 import 'package:flutter/material.dart';
-import 'package:metadata_god/metadata_god.dart';
 import 'package:s_play/music_data.dart' hide playCurrent;
 import 'package:collection/collection.dart';
 import 'package:s_play/widgets/music_card.dart';
@@ -48,16 +48,16 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
         String artist = "Unknown";
 
         debugPrint("gg$soundPath");
-        Metadata meta = await MetadataGod.readMetadata(file: soundPath);
+        Tag? tag = await AudioTags.read(soundPath);
 
-        debugPrint(meta.year.toString());
+        debugPrint(tag?.year.toString());
         // print("mm ${meta.title.toString()}");
         if (mounted) {
           setState(() {
             // print(soundPath);
-            album = meta.album.toString();
-            artist = meta.artist ?? "Unknown";
-            genre = meta.genre.toString();
+            album = tag?.album.toString()??"";
+            artist = tag?.trackArtist ?? "Unknown";
+            genre = tag?.genre.toString()??"";
             playListAll.audios[soundPath] = [
               {"artist": artist, "album": album, "genre": genre},
             ];
@@ -152,17 +152,15 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                             String artist = "Unknown";
                             Future.sync(() async {
                               debugPrint("gg$soundPath");
-                              Metadata meta = await MetadataGod.readMetadata(
-                                file: soundPath,
-                              );
+                              Tag? tag = await AudioTags.read(soundPath);
 
-                              debugPrint(meta.year.toString());
-                              // print("mm ${meta.title.toString()}");
+                              debugPrint(tag?.year.toString());
+                              // print("mm ${tag?.title.toString()}");
 
                               // print(soundPath);
-                              album = meta.album.toString();
-                              artist = meta.artist ?? "Unknown";
-                              genre = meta.genre.toString();
+                              album = tag?.album.toString()??"";
+                              artist = tag?.trackArtist ?? "Unknown";
+                              genre = tag?.genre.toString()??"";
                               playListAll.audios[soundPath] = [
                                 {
                                   "artist": artist,

@@ -114,7 +114,7 @@ late dynamic startPlayBack;
 late dynamic test;
       void ini(){
 
-final d_ffi.DynamicLibrary dyLib = d_ffi.DynamicLibrary.open(r"C:\Users\elija\Desktop\S-Play\miniaudioTest\soundlib.dll");
+final d_ffi.DynamicLibrary dyLib = d_ffi.DynamicLibrary.open("D:/Code/S-Play/miniaudioTest/soundlib.dll");
 
 
 

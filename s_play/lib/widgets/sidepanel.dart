@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi' hide Size;
 
+import 'package:audiotags/audiotags.dart';
 import 'package:ffi/ffi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/gestures.dart';
@@ -10,7 +11,6 @@ import 'package:s_play/cpp_import_playback.dart';
 import 'package:s_play/music_data.dart';
 import 'package:s_play/widgets/playbackwidget.dart';
 import 'package:s_play/widgets/text_button.dart';
-import 'package:metadata_god/metadata_god.dart';
 
 import 'music_card.dart';
 
@@ -47,42 +47,41 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
     return selected[index];
   }
 
-  void playCurrent(int index, String soundPath, Uint8List img) {
-    currentMusic.value = (index, soundPath, img);
+  void playCurrent(int index, String soundPath, List<Picture> img) {
+    currentMusic.value = (index, soundPath, img.first.bytes);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       //debugPrint("gg$soundPath");
-      Metadata meta = await MetadataGod.readMetadata(file: soundPath);
+      Tag? tag = await AudioTags.read(soundPath);
       ByteData bytesData = await rootBundle.load("assets/icons/music.png");
 
       if (mounted) {
         setState(() {
-          meta;
-          if (meta.picture != null) {
-            img = meta.picture!.data;
+          
+          if (tag?.pictures != null) {
+            img = tag!.pictures;
           } else {
-            img = bytesData.buffer.asUint8List();
+            img = [Picture(pictureType: PictureType.coverBack, mimeType: MimeType.png, bytes:bytesData.buffer.asUint8List())];
           }
           // print("mm ${meta.title.toString()}");
 
           // print(soundPath);
-          var album = meta.album.toString();
-          var artist = meta.artist ?? "Unknown";
-          var genre = meta.genre.toString();
+          var album = tag?.album.toString();
+          var artist = tag?.trackArtist ?? "Unknown";
+          var genre = tag?.genre.toString();
           var title =
-              meta.title.toString() == "" ? "Unknown" : meta.title.toString();
-          var duration = meta.duration!.inSeconds;
+              tag?.title.toString() == "" ? "Unknown" : tag?.title.toString();
+          var duration = tag?.duration;
 
           playListAll.audios[soundPath] = [
-            {"artist": artist, "album": album, "genre": genre},
+            {"artist": artist, "album": album??"", "genre": genre??""},
           ];
           currentMeta.value = (
-            title,
+            title??"",
             artist,
-            album,
-            genre,
-            (meta.duration?.inSeconds ?? -1).toInt(),
-            duration,
-            img,
+            album??"",
+            genre??"",
+            duration??-1,
+            img.first,
           );
 
           //print("all $album $artist $title $genre ${meta.year!.toInt()} $duration");
@@ -119,7 +118,7 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
   }
 
   List<String> listAll = [];
-  void timerRunning(int i, String path, Uint8List img) {
+  void timerRunning(int i, String path, List<Picture> img) {
     listAll = mapList(playListAll.audios.keys);
 
     //  print("${currentMusic.value.$1}    ${currentMusic.value.$2}");
@@ -152,7 +151,6 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initializePlayList();
-      await MetadataGod.initialize();
 
       if (mounted) {
         setState(() {
@@ -316,7 +314,7 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
                         isSelected: isSelected[1],
                         onPressed: () async {
                           String? directory =
-                              await FilePicker.platform.getDirectoryPath();
+                              await FilePicker.getDirectoryPath();
                           // print(directory ?? "");
                           if (directory != null &&
                               directory != "" &&

@@ -12,7 +12,7 @@ class MyWidget extends StatelessWidget {
     TextEditingController tController = TextEditingController();
     return Center(
       child: IconButton(onPressed: () async {
-        String? folder = await FilePicker.platform.getDirectoryPath(dialogTitle: add == 0 ? "Add a PLaylist" : "Add a folder");
+        String? folder = await FilePicker.getDirectoryPath(dialogTitle: add == 0 ? "Add a PLaylist" : "Add a folder");
         if (folder != null) {
           if (add==1) {
             folders.add(folder);

@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:audiotags/audiotags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:metadata_god/metadata_god.dart';
 import 'package:s_play/music_data.dart';
 import 'package:s_play/widgets/music_card.dart' hide playCurrent;
 import 'package:s_play/widgets/settings.dart';
@@ -170,17 +170,14 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                                           String soundPath =
                                               musics[newVal >= 0 ? newVal : 0]
                                                   .soundPath;
-                                          Metadata meta =
-                                              await MetadataGod.readMetadata(
-                                                file: soundPath,
-                                              );
+                                           Tag? tag = await AudioTags.read(soundPath);
                                           ByteData bytesData = await rootBundle
                                               .load("assets/icons/music.png");
                                           playCurrent(
                                             newVal >= 0 ? newVal : 0,
                                             soundPath,
-                                            meta.picture != null
-                                                ? meta.picture!.data
+                                            tag?.pictures != null
+                                                ? tag!.pictures.first.bytes
                                                 : bytesData.buffer
                                                     .asUint8List(),
                                           );
@@ -211,7 +208,8 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                                         ? null
                                         : () {
                                           Future.microtask(() => seek(false));
-                                          playCursorNotifier.value -= 10;
+                                          playCursorNotifier.value = playCursorNotifier.value-10 < 0.0 ? 0.0 : playCursorNotifier.value-10.0;
+                                          // print(playCursorNotifier.value);
                                         },
                                 child: Center(
                                   child: Padding(
@@ -276,11 +274,11 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                                           Future.microtask(() => seek(true));
                                           playCursorNotifier.value =
                                               playCursorNotifier.value + 10 <
-                                                      currentMeta.value.$6
+                                                      currentMeta.value.$5
                                                           .toDouble()
                                                   ? playCursorNotifier.value +
                                                       10
-                                                  : currentMeta.value.$6
+                                                  : currentMeta.value.$5
                                                       .toDouble();
                                         },
                                 child: Center(
@@ -457,7 +455,7 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                                             playCursorNotifier.value
                                                 .round()
                                                 .toString(),
-                                        max: currentMeta.value.$6.toDouble(),
+                                        max: currentMeta.value.$5.toDouble(),
                                         activeColor: Color(0xff523116),
                                         inactiveColor: Colors.white,
                                         thumbColor: Color.fromARGB(
@@ -521,7 +519,7 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                                   ),
                                   Text(
                                     formatDuration(
-                                      Duration(seconds: currentMeta.value.$6),
+                                      Duration(seconds: currentMeta.value.$5),
                                     ),
                                   ),
                                 ],

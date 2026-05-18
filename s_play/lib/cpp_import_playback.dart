@@ -60,7 +60,7 @@ void loadLibrary() {
   if (!libInitialized.first) {
     try {
       dyLib = d_ffi.DynamicLibrary.open(
-        r"C:\Users\elija\Desktop\S-Play\miniaudioTest\soundlib.dll",
+        r"D:/Code/S-Play/miniaudioTest/soundlib.dll",
       );
     } catch (e) {
       // print("Error: ${e.toString()}");

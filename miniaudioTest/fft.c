@@ -363,7 +363,7 @@ void seekFrames(ma_bool32 increase)
     Sleep(50);
     ma_decoder_get_cursor_in_pcm_frames(&decoder, &cursor);
     ma_uint64 secondsFrames = 10 * decoder.outputSampleRate;
-    ma_uint64 frameTarget = increase ? ma_min(cursor + secondsFrames, length) : ma_max(cursor - secondsFrames, (ma_uint64)0);
+    ma_uint64 frameTarget = increase ? ma_min(cursor + secondsFrames, length) : ma_max((ma_int64)cursor - (ma_int64)secondsFrames, 0);
     ma_decoder_seek_to_pcm_frame(&decoder, frameTarget);
     ma_device_start(&device);
     Sleep(300);
@@ -384,9 +384,9 @@ void seekToEnd()
     ma_device_stop(&device);
     Sleep(50);
     ma_decoder_get_length_in_pcm_frames(&decoder, &length);
-    ma_decoder_seek_to_pcm_frame(&decoder, length - 100);
+    ma_decoder_seek_to_pcm_frame(&decoder, length);
     ma_device_start(&device);
-    Sleep(300);
+    Sleep(100);
 }
 
 void pauseSound(ma_bool32 notPlaying)

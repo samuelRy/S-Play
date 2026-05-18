@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'dart:async';
+import 'package:audiotags/audiotags.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:metadata_god/metadata_god.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:s_play/cpp_import_playback.dart';
 import 'package:s_play/music_data.dart';
 import 'package:s_play/widgets/playbackwidget.dart';
@@ -34,14 +34,14 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
   String artist = "Unknown";
   int year = -1;
   int duration = 00;
-  Uint8List? img;
+  List<Picture>? img;
 
   /*assetToUint8List('assets/images/image.png').then((
                             imageBytes,
                           ) {
                             img = Picture(data: imageBytes, mimeType: "image/png");
                           });*/
-  late Metadata metaD;
+  late Tag? tagD;
 
   @override
   void initState() {
@@ -59,30 +59,30 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
 
     return WidgetsBinding.instance.addPostFrameCallback((_) async {
       // debugPrint("gg$soundPath");
-      Metadata meta = await MetadataGod.readMetadata(file: soundPath);
+      Tag? tag = await AudioTags.read(soundPath);
       ByteData bytesData = await rootBundle.load("assets/icons/music.png");
 
       if (mounted) {
         setState(() {
-          metaD = meta;
-          if (metaD.picture != null) {
-            img = metaD.picture!.data;
+          tagD = tag;
+          if (tagD?.pictures != null) {
+            img = tagD?.pictures;
           } else {
-            img = bytesData.buffer.asUint8List();
+            img = [Picture(pictureType: PictureType.coverBack, mimeType: MimeType.png, bytes:bytesData.buffer.asUint8List())];
           }
           // debugPrint(metaD.year.toString());
           // print("mm ${metaD.title.toString()}");
 
           // print(soundPath);
-          album = metaD.album.toString();
-          artist = metaD.artist ?? "Unknown";
-          if (metaD.year != null) {
-            year = metaD.year!.toInt();
+          album = tagD?.album.toString()??"";
+          artist = tagD?.trackArtist ?? "Unknown";
+          if (tagD?.year != null) {
+            year = tagD?.year!.toInt()??-1;
           }
-          genre = metaD.genre.toString();
+          genre = tagD?.genre.toString()??"";
           title =
-              metaD.title.toString() == "" ? "Unknown" : metaD.title.toString();
-          duration = metaD.duration!.inSeconds;
+              tagD?.title.toString() == "" ? "Unknown" : tagD?.title.toString()??"";
+          duration = tagD?.duration??-1;
 
           playListAll.audios[soundPath] = [
             {"artist": artist, "album": album, "genre": genre},
@@ -110,7 +110,7 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
   @override
   Widget build(BuildContext context) {
     // print("building");
-    MemoryImage imageMemory = MemoryImage(img??Uint8List(0), scale: 3);
+    MemoryImage imageMemory = MemoryImage(img?.first.bytes??Uint8List(0), scale: 3);
     return Flex(
       direction: Axis.horizontal,
 
@@ -167,7 +167,7 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                           currentMusic.value = (
                             widget.id,
                             widget.soundPath,
-                            img!,
+                            img?.first.bytes?? Uint8List(0),
                           );
                           widget.play(
                             widget.id,
