@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ffi' hide Size;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:s_play/cpp_import_playback.dart' as cpp;
 import 'package:s_play/music_data.dart';
@@ -46,6 +47,15 @@ class _ContentWidgetState extends State<ContentWidget>
   @override
   Widget build(BuildContext context) {
     // print("reval: ${reVal.value}");
+    if (cpp.libInitialized.last) {
+      dynamic lastValue = cpp.ampPtr.value + 1;
+      Timer.periodic(Duration(milliseconds: 800), (timer) {
+        if (lastValue != cpp.ampPtr.value + 1) {
+          reVal.value = (reVal.value + 1) % 10;
+          // print(reVal.value);
+        }
+      });
+    }
     return ValueListenableBuilder(
       valueListenable: reVal,
       builder: (context, value, child) {
@@ -82,7 +92,7 @@ class _ContentWidgetState extends State<ContentWidget>
               ),
               Center(
                 child: ValueListenableBuilder(
-                  valueListenable: currentMusic,
+                  valueListenable: currentMeta,
 
                   builder: (context, value, child) {
                     return Container(
@@ -93,13 +103,14 @@ class _ContentWidgetState extends State<ContentWidget>
                       child: AnimatedBuilder(
                         animation: _rotationAnimation,
                         builder: (context, child) {
+                          // print("tata ${currentMeta.value.$6.bytes.isNotEmpty}");
                           return Transform.rotate(
                             angle: _rotationAnimation.value,
                             child:
                                 currentMusic.value.$1 != -1
-                                    ? currentMusic.value.$3.isNotEmpty
+                                    ? currentMeta.value.$6.bytes.isNotEmpty
                                         ? Image.memory(
-                                          currentMusic.value.$3,
+                                          currentMeta.value.$6.bytes,
                                           fit: BoxFit.fill,
                                         )
                                         : Image.asset(

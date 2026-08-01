@@ -27,6 +27,10 @@ class TextButtonWidget extends StatefulWidget {
   State<TextButtonWidget> createState() => _TextButtonWidgetState();
 }
 
+late Iterable<int> it;
+List<Iterable> listIts = [];
+Map<String, List<int>> mapIndexes = {};
+
 class _TextButtonWidgetState extends State<TextButtonWidget> {
   late bool selected;
   late int ndex;
@@ -47,17 +51,17 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
         String genre = "Unknown";
         String artist = "Unknown";
 
-        debugPrint("gg$soundPath");
+        // debugPrint("gg$soundPath");
         Tag? tag = await AudioTags.read(soundPath);
 
-        debugPrint(tag?.year.toString());
+        // debugPrint(tag?.year.toString());
         // print("mm ${meta.title.toString()}");
         if (mounted) {
           setState(() {
             // print(soundPath);
-            album = tag?.album.toString()??"";
+            album = tag?.album.toString() ?? "";
             artist = tag?.trackArtist ?? "Unknown";
-            genre = tag?.genre.toString()??"";
+            genre = tag?.genre.toString() ?? "";
             playListAll.audios[soundPath] = [
               {"artist": artist, "album": album, "genre": genre},
             ];
@@ -97,6 +101,8 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                     ? () async {
                       trackMusics = [];
                       selected = widget.updateSelected(widget.index);
+                      late Iterable<int> indexes;
+                      List<int> listIndexes = [];
                       if (widget.sortLabel == "all") {
                         mappedNotifier.value = {};
                       } else if (widget.sortLabel == "playlist") {
@@ -114,11 +120,7 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                                 // print(song.value[i]["soundPath"]);
                               }
                               musics.add(
-                                MusicCardWidget(
-                                  soundPath: song.key,
-                                  id: i,
-                                  play: playCurrent,
-                                ),
+                                MusicCardWidget(soundPath: song.key, id: i),
                               );
                             }
                           }
@@ -138,11 +140,14 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                       } else {
                         if (playListAll.audios.isNotEmpty &&
                             playListInitializedNotifier.value) {
+                          // print("doing the thing");
                           int i = 0;
                           musics = [];
+                          mappedNotifier.value = {};
                           // print(playListAll.audios.length);
                           // print(playListAll.audios.keys.length);
                           // print(playListAll.audios.values.length);
+                          // print("all length ${playListAll.audios.length}");
                           for (var k = 0; k < playListAll.audios.length; k++) {
                             // print(playListAll.audios.keys.elementAt(k));
                             final String soundPath = playListAll.audios.keys
@@ -150,17 +155,16 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                             String album = "Unknown";
                             String genre = "Unknown";
                             String artist = "Unknown";
-                            Future.sync(() async {
-                              debugPrint("gg$soundPath");
+                              // debugPrint("gg$soundPath");
                               Tag? tag = await AudioTags.read(soundPath);
 
-                              debugPrint(tag?.year.toString());
+                              // debugPrint(tag?.year.toString());
                               // print("mm ${tag?.title.toString()}");
 
                               // print(soundPath);
-                              album = tag?.album.toString()??"";
+                              album = tag?.album.toString() ?? "";
                               artist = tag?.trackArtist ?? "Unknown";
-                              genre = tag?.genre.toString()??"";
+                              genre = tag?.genre.toString() ?? "";
                               playListAll.audios[soundPath] = [
                                 {
                                   "artist": artist,
@@ -168,13 +172,13 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                                   "genre": genre,
                                 },
                               ];
+                              // print(playListAll.audios.values.length);
+                              // print("soundPath data ${playListAll.audios[soundPath]} $k" );
                               //currentMeta.value = (title, artist, album, genre, (metaD.durationMs??-1.0).toInt(), duration, img??Uint8List(0));
 
                               // print("all $album $artist $title $genre $year $duration");
-                            }).then((onValue) {
-                              // print(playListAll.audios.values.elementAt(k));
-                            });
                           }
+                          // print(playListAll.audios);
 
                           List expand =
                               playListAll.audios.values.expand((element) {
@@ -182,23 +186,36 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                                 return element;
                               }).toList();
                           // print("expand : ${expand.length}  $expand");
+                          mapIndexes = {};
                           mappedNotifier.value = groupBy(expand, (item) {
                             // print("item $item");
                             item["soundPath"] = playListAll.audios.keys
                                 .elementAt(i);
+                            listIndexes.add(i);
+                            // print(mapIndexes[item[widget.sortLabel]] ?? []);
+                            // mapIndexes[item[widget.sortLabel]];
+                            // print(item[widget.sortLabel]);
+                            if (mapIndexes[item[widget.sortLabel]] == null) {
+                              mapIndexes[item[widget.sortLabel]] = [];
+                            }
+                            mapIndexes[item[widget.sortLabel]]!.add(i);
                             musics.add(
                               MusicCardWidget(
                                 soundPath: playListAll.audios.keys.elementAt(i),
                                 id: i,
-                                play: playCurrent,
                               ),
                             );
+                            indexes = listIndexes;
+
                             i++;
                             // print(i);
                             // print("item sortLabel ${item[widget.sortLabel]}");
                             return item[widget.sortLabel];
                           });
                         }
+                      mapIndexes.forEach((key, value) {
+                        value.sort();
+                      });
                       }
 
                       setState(() {

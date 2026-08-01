@@ -1,5 +1,6 @@
 import 'dart:ffi' as d_ffi;
 import 'package:ffi/ffi.dart';
+import 'package:flutter/material.dart';
 
 typedef InitializeSoundDataC = d_ffi.Int32 Function(d_ffi.Pointer<Utf16>);
 
@@ -25,9 +26,9 @@ typedef PauseSoundC = d_ffi.Void Function(d_ffi.Bool);
 
 typedef PauseSoundDart = void Function(bool);
 
-typedef ModifyVolumeC = d_ffi.Void Function(d_ffi.Bool);
+typedef ModifyVolumeC = d_ffi.Void Function(d_ffi.Float);
 
-typedef ModifyVolumeDart = void Function(bool);
+typedef ModifyVolumeDart = void Function(double);
 
 typedef SeekFramesC = d_ffi.Void Function(d_ffi.Bool);
 
@@ -49,14 +50,33 @@ typedef ChangeEqC = d_ffi.Void Function();
 
 typedef ChangeEqDart = void Function();
 
-typedef ChangeGainsC = d_ffi.Void Function(d_ffi.Float subBassGainVal, d_ffi.Float bassGainVal, d_ffi.Float lowMidrangeGainVal, d_ffi.Float midrangeGainVal, d_ffi.Float upperMidsGainVal, d_ffi.Float highMidsGainVal, d_ffi.Float trebleGainVal);
+typedef ChangeGainsC =
+    d_ffi.Void Function(
+      d_ffi.Float subBassGainVal,
+      d_ffi.Float bassGainVal,
+      d_ffi.Float lowMidrangeGainVal,
+      d_ffi.Float midrangeGainVal,
+      d_ffi.Float upperMidsGainVal,
+      d_ffi.Float highMidsGainVal,
+      d_ffi.Float trebleGainVal,
+    );
 
-typedef ChangeGainsDart = void Function(double subBassGainVal, double bassGainVal, double lowMidrangeGainVal, double midrangeGainVal, double upperMidsGainVal, double highMidsGainVal, double trebleGainVal);
+typedef ChangeGainsDart =
+    void Function(
+      double subBassGainVal,
+      double bassGainVal,
+      double lowMidrangeGainVal,
+      double midrangeGainVal,
+      double upperMidsGainVal,
+      double highMidsGainVal,
+      double trebleGainVal,
+    );
 
 List<bool> libInitialized = [false, false];
 late final d_ffi.DynamicLibrary dyLib;
 
 void loadLibrary() {
+  // debugPrint("Init1");
   if (!libInitialized.first) {
     try {
       dyLib = d_ffi.DynamicLibrary.open(
@@ -66,15 +86,17 @@ void loadLibrary() {
       // print("Error: ${e.toString()}");
 
       // Check if file actually exists
-      
+
       // print("File exists: ${exists.exists()}");
       rethrow;
     }
   }
   libInitialized[0] = true;
+  // debugPrint("End Init1");
 }
 
 void initializeLibraryFunctions() {
+  // debugPrint("Init2");
   if (!libInitialized.last) {
     ampPtr = dyLib.lookup<d_ffi.Float>('amp');
     lowPtr = dyLib.lookup<d_ffi.Float>('low');
@@ -83,23 +105,23 @@ void initializeLibraryFunctions() {
     freqReadPtr = dyLib.lookup<d_ffi.Int>('freqRead');
     running = dyLib.lookup<d_ffi.Bool>('running');
     subBassGain = dyLib.lookup<d_ffi.Float>('subBassGain');
-bassGain = dyLib.lookup<d_ffi.Float>('bassGain');
-lowMidrangeGain = dyLib.lookup<d_ffi.Float>('lowMidrangeGain');
-midrangeGain = dyLib.lookup<d_ffi.Float>('midrangeGain');
-upperMidsGain = dyLib.lookup<d_ffi.Float>('upperMidsGain');
-highMidsGain = dyLib.lookup<d_ffi.Float>('highMidsGain');
-trebleGain = dyLib.lookup<d_ffi.Float>('trebleGain');
-eq = dyLib.lookup<d_ffi.Bool>('trebleGain');
+    bassGain = dyLib.lookup<d_ffi.Float>('bassGain');
+    lowMidrangeGain = dyLib.lookup<d_ffi.Float>('lowMidrangeGain');
+    midrangeGain = dyLib.lookup<d_ffi.Float>('midrangeGain');
+    upperMidsGain = dyLib.lookup<d_ffi.Float>('upperMidsGain');
+    highMidsGain = dyLib.lookup<d_ffi.Float>('highMidsGain');
+    trebleGain = dyLib.lookup<d_ffi.Float>('trebleGain');
+    eq = dyLib.lookup<d_ffi.Bool>('trebleGain');
     initializeSoundData = dyLib
         .lookupFunction<InitializeSoundDataC, InitializeSoundDataDart>(
           "initializeSoundData",
         );
-    
+
     disposeSoundData = dyLib
         .lookupFunction<DisposeSoundDataC, DisposeSoundDataDart>(
           "disposeSoundData",
         );
-    
+
     startPlayBack = dyLib.lookupFunction<StartPlayBackC, StartPlayBackDart>(
       "startPlayback",
     );
@@ -116,20 +138,17 @@ eq = dyLib.lookup<d_ffi.Bool>('trebleGain');
     seekToFrames = dyLib.lookupFunction<SeekToFramesC, SeekToFramesDart>(
       "seekToFrames",
     );
-    seekToEnd = dyLib.lookupFunction<SeekToEndC, SeekToEndDart>(
-      "seekToEnd",
-    );
+    seekToEnd = dyLib.lookupFunction<SeekToEndC, SeekToEndDart>("seekToEnd");
     getElapsedTime = dyLib.lookupFunction<GetElapsedTimeC, GetElapsedTimeDart>(
       "getElapsedTime",
     );
-    changeEq = dyLib.lookupFunction<ChangeEqC, ChangeEqDart>(
-      "changeEq",
-    );
+    changeEq = dyLib.lookupFunction<ChangeEqC, ChangeEqDart>("changeEq");
     changeGains = dyLib.lookupFunction<ChangeGainsC, ChangeGainsDart>(
       "changeGains",
     );
   }
   libInitialized[1] = true;
+  // debugPrint("End Init2");
 }
 
 late final dynamic initializeSoundData;

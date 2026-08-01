@@ -12,11 +12,13 @@ import 'dart:io';
 import 'music_listing.dart';
 
 bool notPlaying = false;
-bool started = false;
+bool playerRefresh = false;
 Uint8List? backImageDefault;
+double volume = 1.0;
 
 PlayList playListAll = PlayList(id: 0, name: "");
 
+ValueNotifier<bool> playerRefresher = ValueNotifier<bool>(playerRefresh);
 (int, String, Uint8List) current = (-1, "", Uint8List(0));
 (String, String, String, String, int, Picture) metaC = (
   "",
@@ -92,7 +94,7 @@ Future<void> initializePlayList() async {
   }
   playListAll = (PlayList(audios: list, id: 0, name: "All"));
   for (var i = 0; i < it; i++) {
-    MusicCardWidget(id: i, play: () {}, soundPath: sounds[i]);
+    MusicCardWidget(id: i, soundPath: sounds[i]);
     // print("${sounds[i]} ${playListAll.audios.length}");
   }
   playLists.add(playListAll);
@@ -102,37 +104,15 @@ Future<void> initializePlayList() async {
 
 int rebuild = 0;
 
-void playCurrent(int index, String soundPath, Uint8List img) {
-  currentMusic.value = (index, soundPath, img);
-  // /*setState(() {*/print("true Too ${musics.length} ${index + 1} $index");
-  if (currentMusic.value.$1 != -1) {
-    started = false;
-    // print("Disposing");
-    disposeSoundData();
-    timerPlay?.cancel();
-    timerPlay = null;
-    // print("Dispose");
-  }
-  // print("initiaaaa ${currentMusic.value.$1} ${currentMusic.value.$2}");
-  if (currentMusic.value.$1 != index) {
-    // print(musics.length > index);
-    if (musics.length > index) {
-      // print("nexta");
-    }
-    //initA();
-  }
-  // print("Initializing ${soundPath.toNativeUtf16()}");
-  initializeSoundData(soundPath.toNativeUtf16());
-  // print("Initialized");
-  Future.microtask(() async {
-    startPlayBack();
-
-    // print("qe");
-    // print("qe");
-  });
-}
-//}
 
 ValueNotifier<int> reVal = ValueNotifier<int>(rebuild);
 ValueNotifier<Map<dynamic, List<dynamic>>> mappedNotifier =
     ValueNotifier<Map<dynamic, List<dynamic>>>(mappedList);
+
+ByteData bytesData = ByteData(0);
+void bytesDataInitialize() async {
+  // print("write bytes");
+  WidgetsFlutterBinding.ensureInitialized();
+   bytesData= await rootBundle.load("assets/icons/music.png");
+  // print("wrote bytes");
+}

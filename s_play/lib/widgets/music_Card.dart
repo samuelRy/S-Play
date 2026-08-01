@@ -12,15 +12,9 @@ import 'package:s_play/widgets/playbackwidget.dart';
 import 'package:s_play/widgets/sidepanel.dart';
 
 class MusicCardWidget extends StatefulWidget {
-  const MusicCardWidget({
-    super.key,
-    required this.soundPath,
-    required this.id,
-    required this.play,
-  });
+  const MusicCardWidget({super.key, required this.soundPath, required this.id});
   final String soundPath;
   final int id;
-  final Function play;
 
   @override
   State<MusicCardWidget> createState() => _MusicCardWidgetState();
@@ -60,7 +54,6 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
     return WidgetsBinding.instance.addPostFrameCallback((_) async {
       // debugPrint("gg$soundPath");
       Tag? tag = await AudioTags.read(soundPath);
-      ByteData bytesData = await rootBundle.load("assets/icons/music.png");
 
       if (mounted) {
         setState(() {
@@ -68,21 +61,29 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
           if (tagD?.pictures != null) {
             img = tagD?.pictures;
           } else {
-            img = [Picture(pictureType: PictureType.coverBack, mimeType: MimeType.png, bytes:bytesData.buffer.asUint8List())];
+            img = [
+              Picture(
+                pictureType: PictureType.coverBack,
+                mimeType: MimeType.png,
+                bytes: bytesData.buffer.asUint8List(),
+              ),
+            ];
           }
           // debugPrint(metaD.year.toString());
           // print("mm ${metaD.title.toString()}");
 
           // print(soundPath);
-          album = tagD?.album.toString()??"";
+          album = tagD?.album.toString() ?? "";
           artist = tagD?.trackArtist ?? "Unknown";
           if (tagD?.year != null) {
-            year = tagD?.year!.toInt()??-1;
+            year = tagD?.year!.toInt() ?? -1;
           }
-          genre = tagD?.genre.toString()??"";
+          genre = tagD?.genre.toString() ?? "";
           title =
-              tagD?.title.toString() == "" ? "Unknown" : tagD?.title.toString()??"";
-          duration = tagD?.duration??-1;
+              tagD?.title.toString() == ""
+                  ? "Unknown"
+                  : tagD?.title.toString() ?? "";
+          duration = tagD?.duration ?? -1;
 
           playListAll.audios[soundPath] = [
             {"artist": artist, "album": album, "genre": genre},
@@ -104,13 +105,13 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
     //
   }
 
-  OverlayEntry? overlay;
-  Timer? timer;
-  bool isHovered = false;
   @override
   Widget build(BuildContext context) {
     // print("building");
-    MemoryImage imageMemory = MemoryImage(img?.first.bytes??Uint8List(0), scale: 3);
+    MemoryImage imageMemory = MemoryImage(
+      img?.first.bytes ?? Uint8List(0),
+      scale: 3,
+    );
     return Flex(
       direction: Axis.horizontal,
 
@@ -164,16 +165,21 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                       child: MaterialButton(
                         onPressed: () {
+                          // print("faaaah");
+                          change_music = true;
+                          started = false;
                           currentMusic.value = (
                             widget.id,
                             widget.soundPath,
-                            img?.first.bytes?? Uint8List(0),
+                            img?.first.bytes ?? Uint8List(0),
                           );
-                          widget.play(
-                            widget.id,
-                            widget.soundPath,
-                            img ?? Uint8List(0),
-                          );
+                          if (shuffleNotifier.value) {
+                            listShuffled.forEach((key, value){
+                              if (value==widget.id) {
+                                listShuffled[-1] = key;
+                              }
+                            });
+                          }
                         },
                         child: ValueListenableBuilder(
                           valueListenable: currentMusic,
@@ -185,7 +191,7 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                                       ? Color.fromARGB(83, 205, 123, 56)
                                       : Color.fromARGB(26, 205, 123, 56),
                               padding: EdgeInsets.symmetric(
-                                horizontal: 15,
+                                horizontal: 7,
                                 vertical: 5,
                               ),
                               child: Column(
@@ -193,68 +199,43 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                                 children: [
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment: CrossAxisAlignment.end,
+                                    // spacing: 20,
                                     children: [
                                       Expanded(
+                                        flex: 2,
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           spacing: 5.0,
                                           children: [
-                                            MouseRegion(
-                                              onHover: (event) {
-                                                isHovered = true;
-                                                RenderBox box =
-                                                    context.findRenderObject()
-                                                        as RenderBox;
-                                                // print(
-                                                //   "hover browww ${event.delta.dy} ${event.localPosition.dy} ${event.position.dy} ${box.localToGlobal(event.localPosition).dx}",
-                                                // );
-
-                                                if (overlay == null) {
-                                                  Offset mouseOffset = box
-                                                      .localToGlobal(
-                                                        event.localPosition,
-                                                      );
-                                                  Future.microtask(() async {
-                                                    timer = Timer(
-                                                      Duration(seconds: 1),
-                                                      () {
-                                                        if (overlay != null ||
-                                                            !isHovered) {
-                                                          return;
-                                                        }
-                                                        //print("hover pop browww");
-                                                        overlay = getOverlay(
-                                                          title,
-                                                          mouseOffset,
-                                                        );
-                                                        Overlay.of(
-                                                          context,
-                                                        ).insert(overlay!);
-                                                      },
-                                                    );
-                                                  });
-                                                }
-                                              },
-                                              onExit: (event) {
-                                                isHovered = false;
-                                                if (overlay != null) {
-                                                  // print("disapear");
-                                                  overlay?.remove();
-                                                  Overlay.of(
-                                                    context,
-                                                  ).didChangeDependencies();
-                                                  overlay?.dispose();
-                                                  timer?.cancel();
-                                                }
-                                                overlay = null;
-                                                timer = null;
-                                              },
-
+                                            Tooltip(
+                                              message: title,
+                                              textStyle: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w400,
+                                                decoration:
+                                                    TextDecoration.none,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    49,
+                                                    8,
+                                                  ),
+                                                ),
+                                                color: Color.fromARGB(
+                                                  118,
+                                                  165,
+                                                  99,
+                                                  45,
+                                                ),
+                                              ),
                                               child: Text(
                                                 title,
                                                 style: TextStyle(
@@ -267,59 +248,34 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                                                 maxLines: 1,
                                               ),
                                             ),
-                                            MouseRegion(
-                                              onHover: (event) {
-                                                isHovered = true;
-                                                RenderBox box =
-                                                    context.findRenderObject()
-                                                        as RenderBox;
-                                                // print(
-                                                //   "hover browww ${event.delta.dy} ${event.localPosition.dy} ${event.position.dy} ${box.localToGlobal(event.localPosition).dx}",
-                                                // );
-
-                                                if (overlay == null) {
-                                                  Offset mouseOffset = box
-                                                      .localToGlobal(
-                                                        event.localPosition,
-                                                      );
-                                                  Future.microtask(() async {
-                                                    timer = Timer(
-                                                      Duration(seconds: 1),
-                                                      () {
-                                                        if (overlay != null ||
-                                                            !isHovered) {
-                                                          return;
-                                                        }
-                                                        //print("hover pop browww");
-                                                        overlay = getOverlay(
-                                                          [
-                                                            artist,
-                                                            album,
-                                                          ].join(" - "),
-                                                          mouseOffset,
-                                                        );
-                                                        Overlay.of(
-                                                          context,
-                                                        ).insert(overlay!);
-                                                      },
-                                                    );
-                                                  });
-                                                }
-                                              },
-                                              onExit: (event) {
-                                                isHovered = false;
-                                                if (overlay != null) {
-                                                  // print("disapear");
-                                                  overlay?.remove();
-                                                  Overlay.of(
-                                                    context,
-                                                  ).didChangeDependencies();
-                                                  overlay?.dispose();
-                                                  timer?.cancel();
-                                                }
-                                                overlay = null;
-                                                timer = null;
-                                              },
+                                            Tooltip(
+                                              message: [
+                                                artist,
+                                                album,
+                                              ].join(" - "),
+                                              textStyle: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w400,
+                                                decoration:
+                                                    TextDecoration.none,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    49,
+                                                    8,
+                                                  ),
+                                                ),
+                                                color: Color.fromARGB(
+                                                  118,
+                                                  165,
+                                                  99,
+                                                  45,
+                                                ),
+                                              ),
                                               child: Text(
                                                 maxLines: 1,
                                                 [artist, album].join(" - "),
@@ -334,32 +290,34 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                                           ],
                                         ),
                                       ),
-                                      SizedBox(width: 100),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        spacing: 5.0,
-                                        children: [
-                                          Text(
-                                            genre,
-                                            style: TextStyle(
-                                              overflow: TextOverflow.clip,
-                                              fontSize: 13,
-                                              fontFamily: "Fasthand",
+                                      Expanded(
+                                        flex: 1,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          spacing: 5.0,
+                                          children: [
+                                            Text(
+                                              genre,
+                                              style: TextStyle(
+                                                overflow: TextOverflow.clip,
+                                                fontSize: 13,
+                                                fontFamily: "Fasthand",
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            formatDuration(
-                                              Duration(seconds: duration),
+                                            Text(
+                                              formatDuration(
+                                                Duration(seconds: duration),
+                                              ),
+                                              style: TextStyle(
+                                                overflow: TextOverflow.clip,
+                                                fontSize: 13,
+                                                fontFamily: "Fasthand",
+                                              ),
                                             ),
-                                            style: TextStyle(
-                                              overflow: TextOverflow.clip,
-                                              fontSize: 13,
-                                              fontFamily: "Fasthand",
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -394,7 +352,6 @@ Future<Uint8List> assetToUint8List(String assetPath) {
   });
 }
 
-
 class PlaybackController extends ChangeNotifier {
   int currentIndex = -1;
 }
@@ -403,7 +360,7 @@ void playCurrent(int index, String soundPath, Uint8List img) {
   currentMusic.value = (index, soundPath, img);
   // /*setState(() {*/print("true Too ${musics.length} ${index + 1} $index");
   if (currentMusic.value.$1 != -1) {
-    started = false;
+    // started = false;
     // print("Disposing");
     disposeSoundData();
     timerPlay?.cancel();
@@ -411,7 +368,7 @@ void playCurrent(int index, String soundPath, Uint8List img) {
     // print("Dispose");
   }
   // print("initiaaaa ${currentMusic.value.$1} ${currentMusic.value.$2}");
-  
+
   // print("Initializing ${soundPath.toNativeUtf16()}");
   initializeSoundData(soundPath.toNativeUtf16());
   // print("Initialized");
@@ -423,30 +380,3 @@ void playCurrent(int index, String soundPath, Uint8List img) {
   });
 }
 //}
-
-OverlayEntry getOverlay(String label, Offset offset) {
-  return OverlayEntry(
-    builder: (context) {
-      return Positioned(
-        left: offset.dx + 15,
-        top: offset.dy + 25,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Color.fromARGB(255, 100, 49, 8)),
-            color: Color.fromARGB(118, 165, 99, 45),
-          ),
-          padding: EdgeInsets.all(1.0),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: const Color.fromARGB(255, 255, 196, 128),
-              fontWeight: FontWeight.w400,
-              decoration: TextDecoration.none,
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}

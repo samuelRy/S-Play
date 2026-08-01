@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include "math.h"
 #include "complex.h"
+#include <stdatomic.h>
 #define pi MA_PI
 #define e ma_expd
 #define true MA_TRUE
@@ -23,23 +24,26 @@
 #define fftSize 4096
 #define fftModSize 1024
 #define BUFFER_RING_SIZE 2048
-#define isSubBass(x) x < 60
-#define isBass(x) x < 250
-#define isLowMidrange(x) x < 500
-#define isMidrange(x) x < 2000
-#define isUpperMids(x) x < 4000
-#define isHighMids(x) x < 6000
-#define isTreble(x) x < 20000
-
+#define NUM_BANDS 7
+typedef struct
+{
+    float b0, b1, b2;
+    float a1, a2;
+    float z1, z2;
+} Biquad;
 void fft(complex float output[], float signal[], int size, int step);
 void applyEq(complex float *fftOut, float subBassGain, float bassGain, float lowMidrangeGain, float midrangeGain, float upperMidsGain, float highMidsGain, float trebleGain);
 void ifft(complex float output[], complex float signal[], int size, int step);
 void stopAudioThread(HANDLE *hThread);
+static inline float biquad_process(Biquad *b, float x);
+void biquad_peaking(Biquad *q, float fs, float f0, float Q, float gainDB);
 HANDLE hThread = NULL;
 volatile float framesRead;
-volatile ma_bool32 running = true;
+_Atomic ma_bool32 running = false;
 ma_bool32 eq = false;
 
+
+Biquad beq[NUM_BANDS];
 ma_bool32 fftRunning = false;
 ma_bool32 fftReady = false;
 pthread_t fftThread;
@@ -50,10 +54,10 @@ float low[fftSize / 16];
 float mid[fftSize / 16];
 float high[fftSize / 16];
 int freqRead[3];
-volatile float subBassGain = 1, bassGain = 1, lowMidrangeGain = 1;
-volatile float midrangeGain = 1, upperMidsGain = 1;
-volatile float highMidsGain = 1;
-volatile float trebleGain = 1;
+float subBassGain = 0, bassGain = 0, lowMidrangeGain = 0;
+float midrangeGain = 0, upperMidsGain = 0;
+float highMidsGain = 0;
+float trebleGain = 0;
 float ringBuffer[BUFFER_RING_SIZE];
 complex float outBuffer[BUFFER_RING_SIZE];
 int writePos = 0;
@@ -63,6 +67,7 @@ ma_device_config deviceConfig;
 ma_device device;
 ma_uint64 cursor;
 ma_uint64 length;
+
 
 void data_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount)
 {
@@ -89,47 +94,76 @@ void data_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uin
 
         ma_uint32 totalFramesRemaining = frameCount - totalFramesRead;
         ma_uint64 pFramesRead;
-        ma_uint32 framesToReadNow = fftModSize / pDecoder->outputChannels;
+        ma_uint32 framesToReadNow = fftSize / pDecoder->outputChannels;
         if (framesToReadNow > totalFramesRemaining)
         {
             framesToReadNow = totalFramesRemaining;
         }
-        // printf("%d\n", framesToReadNow);
+        // if (subBassGain!=0.0f)
+        // {
+        //     printf("%f\n", subBassGain);
+
+        // }
         if (ma_decoder_read_pcm_frames(pDecoder, temp, framesToReadNow, &pFramesRead) != MA_SUCCESS)
         {
-            // printf("Failed to read\n");
         }
 
-        // printf("%lu\n", pFramesRead);
-        // fflush(stdout);
-        complex float output[fftModSize];
-        fft(output, temp, fftModSize, 1);
-
-        /* code */
-
-        applyEq(output, subBassGain, bassGain, lowMidrangeGain, midrangeGain, upperMidsGain, highMidsGain, trebleGain);
-
-        complex float modifiedSamples[fftModSize];
-        ifft(modifiedSamples, output, fftModSize, 1);
-        for (size_t i = 0; i < fftModSize; i++)
+        for (ma_uint64 i = 0; i < pFramesRead*pDecoder->outputChannels; i++)
         {
-            modifiedSamples[i] /= fftModSize;
-            // printf("%f\n", crealf(modifiedSamples[i]));
+            float x = temp[i];
+
+            for (int b = 0; b < NUM_BANDS; b++)
+            {
+                x = biquad_process(&beq[b], x);
+            }
+
+        // printf(" read\n");
+            out[i] = x;
+            // printf("%f %f %f %f\n", creal(output[sample]), cimag(output[sample]),creal(output[sample+((pFramesRead * pDecoder->outputChannels)/2)]), cimag(output[sample+((pFramesRead * pDecoder->outputChannels)/2)]));
         }
 
         // printf("%lu\n", (unsigned long)framesToReadNow);
-        for (ma_uint64 sample = 0; sample < pFramesRead * pDecoder->outputChannels; sample++)
-        {
-            out[sample] = creal(modifiedSamples[sample]);
-            // printf("%f %f %f %f\n", creal(output[sample]), cimag(output[sample]),creal(output[sample+((pFramesRead * pDecoder->outputChannels)/2)]), cimag(output[sample+((pFramesRead * pDecoder->outputChannels)/2)]));
-        }
     }
-    
-    memcpy(frames, pOutput, fftSize * sizeof(float));
+
+    const size_t sampleCount = (size_t)frameCount * (size_t)decoder.outputChannels;
+    const size_t copyCount = min(fftSize, sampleCount);
+
+    memset(frames, 0, sizeof(frames));
+    memcpy(frames, pOutput, copyCount * sizeof(float));
 
     fftReady = true;
 
     (void)pInput;
+}
+
+static inline float biquad_process(Biquad *b, float x)
+{
+    float y = b->b0 * x + b->z1;
+    b->z1 = b->b1 * x - b->a1 * y + b->z2;
+    b->z2 = b->b2 * x - b->a2 * y;
+    return y;
+}
+
+void biquad_peaking(Biquad *q, float fs, float f0, float Q, float gainDB)
+{
+    float A = powf(10.0f, gainDB / 40.0f);
+    float w0 = 2.0f * M_PI * f0 / fs;
+    float alpha = sinf(w0) / (2.0f * Q);
+
+    float b0 = 1 + alpha * A;
+    float b1 = -2 * cosf(w0);
+    float b2 = 1 - alpha * A;
+    float a0 = 1 + alpha / A;
+    float a1 = -2 * cosf(w0);
+    float a2 = 1 - alpha / A;
+
+    q->b0 = b0 / a0;
+    q->b1 = b1 / a0;
+    q->b2 = b2 / a0;
+    q->a1 = a1 / a0;
+    q->a2 = a2 / a0;
+
+    q->z1 = q->z2 = 0.0f;
 }
 
 int initializeSoundData(const wchar_t *filepath)
@@ -156,6 +190,13 @@ int initializeSoundData(const wchar_t *filepath)
     deviceConfig.sampleRate = decoder.outputSampleRate;
     deviceConfig.dataCallback = data_callback;
     deviceConfig.pUserData = &decoder;
+    biquad_peaking(&beq[0], deviceConfig.sampleRate, 80, 1.0f, subBassGain);
+    biquad_peaking(&beq[1], deviceConfig.sampleRate, 200, 1.0f, bassGain);
+    biquad_peaking(&beq[2], deviceConfig.sampleRate, 500, 1.0f, lowMidrangeGain);
+    biquad_peaking(&beq[3], deviceConfig.sampleRate, 1000, 1.0f, midrangeGain);
+    biquad_peaking(&beq[4], deviceConfig.sampleRate, 3000, 1.0f, upperMidsGain);
+    biquad_peaking(&beq[5], deviceConfig.sampleRate, 8000, 1.0f, highMidsGain);
+    biquad_peaking(&beq[6], deviceConfig.sampleRate, 12000, 1.0f, trebleGain);
 
     // printf("format %d\n", decoder.outputFormat);
     // fflush(stdout);
@@ -192,12 +233,18 @@ void changeGains(float subBassGainVal, float bassGainVal, float lowMidrangeGainV
     upperMidsGain = upperMidsGainVal;
     highMidsGain = highMidsGainVal;
     trebleGain = trebleGainVal;
+    biquad_peaking(&beq[0], deviceConfig.sampleRate, 80, 1.0f, subBassGain);
+    biquad_peaking(&beq[1], deviceConfig.sampleRate, 200, 1.0f, bassGain);
+    biquad_peaking(&beq[2], deviceConfig.sampleRate, 500, 1.0f, lowMidrangeGain);
+    biquad_peaking(&beq[3], deviceConfig.sampleRate, 1000, 1.0f, midrangeGain);
+    biquad_peaking(&beq[4], deviceConfig.sampleRate, 3000, 1.0f, upperMidsGain);
+    biquad_peaking(&beq[5], deviceConfig.sampleRate, 8000, 1.0f, highMidsGain);
+    biquad_peaking(&beq[6], deviceConfig.sampleRate, 12000, 1.0f, trebleGain);
 }
 
 void applyEq(complex float *fftOut, float subBassGain, float bassGain, float lowMidrangeGain,
              float midrangeGain, float upperMidsGain, float highMidsGain, float trebleGain)
 {
-    float transitionWidth = 50.0f; // Hz transition width
 
     for (size_t i = 0; i < fftModSize; i++)
     {
@@ -211,28 +258,23 @@ void applyEq(complex float *fftOut, float subBassGain, float bassGain, float low
         }
         else if (freq < 250.0f)
         {
-            float t = (freq - 60.0f) / (250.0f - 60.0f);
-            gain = subBassGain * (1.0f - t) + bassGain * t;
+            gain = bassGain;
         }
         else if (freq < 500.0f)
         {
-            float t = (freq - 250.0f) / (500.0f - 250.0f);
-            gain = bassGain * (1.0f - t) + lowMidrangeGain * t;
+            gain = lowMidrangeGain;
         }
         else if (freq < 2000.0f)
         {
-            float t = (freq - 500.0f) / (2000.0f - 500.0f);
-            gain = lowMidrangeGain * (1.0f - t) + midrangeGain * t;
+            gain = midrangeGain;
         }
         else if (freq < 4000.0f)
         {
-            float t = (freq - 2000.0f) / (4000.0f - 2000.0f);
-            gain = midrangeGain * (1.0f - t) + upperMidsGain * t;
+            gain = upperMidsGain;
         }
         else if (freq < 6000.0f)
         {
-            float t = (freq - 4000.0f) / (6000.0f - 4000.0f);
-            gain = upperMidsGain * (1.0f - t) + highMidsGain * t;
+            gain = highMidsGain;
         }
         else
         {
@@ -281,7 +323,7 @@ void *fftThreadStart(void *arg)
                 {
                     val = ampOpt[i];
                 }
-                // printf("i: %d  val: %f  freq: %f\n", i, val, freq);
+                // printf("i: %d  val: %f  freq: %f l: %d m: %d h: %d", i, val, freq, l, m, h);
                 if (freq < 300.0f)
                 {
                     low[l++] = val;
@@ -301,6 +343,7 @@ void *fftThreadStart(void *arg)
             freqRead[0] = l;
             freqRead[1] = m;
             freqRead[2] = h;
+            // printf("%d %f\n", h, high[h-1]);
 
             /*float signal[8];
             for (size_t i = 0; i < 8; i++)
@@ -310,7 +353,7 @@ void *fftThreadStart(void *arg)
             }
             fft(output, signal, 8, 1);*/
         }
-        Sleep(100);
+        // Sleep(100);
     }
 }
 
@@ -322,12 +365,12 @@ void fftThreadStop()
 
 void disposeSoundData()
 {
+    printf("Dispose started\n");
     running = false;
-    // printf("Dispose started\n");
     // fflush(stdout);
     if (hThread != NULL)
     {
-        // printf("Stoping audio thread\n");
+        printf("Stoping audio thread\n");
         stopAudioThread(&hThread);
         // fflush(stdout);
     }
@@ -335,7 +378,7 @@ void disposeSoundData()
     ma_device_stop(&device);
     ma_device_uninit(&device);
     ma_decoder_uninit(&decoder);
-    // printf("Dispose ended\n");
+    printf("Dispose ended\n");
     // fflush(stdout);
 }
 
@@ -344,49 +387,45 @@ void disposeSoundData()
 
 }*/
 
-void modifyVolume(ma_bool32 increase)
+void modifyVolume(float volume)
 {
-    float volume;
-    ma_device_get_master_volume(&device, &volume);
-    volume += increase ? 0.1 : -0.1;
     if (volume >= 0.0f && volume <= 1.0f)
     {
-
+// printf("volume: %f", volume);
         ma_device_set_master_volume(&device, volume);
-        Sleep(200);
+        // Sleep(200);
     }
 }
 
 void seekFrames(ma_bool32 increase)
 {
     ma_device_stop(&device);
-    Sleep(50);
+    // Sleep(50);
     ma_decoder_get_cursor_in_pcm_frames(&decoder, &cursor);
     ma_uint64 secondsFrames = 10 * decoder.outputSampleRate;
     ma_uint64 frameTarget = increase ? ma_min(cursor + secondsFrames, length) : ma_max((ma_int64)cursor - (ma_int64)secondsFrames, 0);
     ma_decoder_seek_to_pcm_frame(&decoder, frameTarget);
     ma_device_start(&device);
-    Sleep(300);
+    // Sleep(300);
 }
 
 void seekToFrames(int seconds)
 {
     ma_device_stop(&device);
-    Sleep(50);
+    // Sleep(50);
     ma_uint64 frameTarget = seconds * decoder.outputSampleRate;
     ma_decoder_seek_to_pcm_frame(&decoder, frameTarget);
     ma_device_start(&device);
-    Sleep(500);
+    // Sleep(500);
 }
 
 void seekToEnd()
 {
     ma_device_stop(&device);
-    Sleep(50);
+    // Sleep(50);
     ma_decoder_get_length_in_pcm_frames(&decoder, &length);
-    ma_decoder_seek_to_pcm_frame(&decoder, length);
+    ma_decoder_seek_to_pcm_frame(&decoder, length - decoder.outputSampleRate);
     ma_device_start(&device);
-    Sleep(100);
 }
 
 void pauseSound(ma_bool32 notPlaying)
@@ -410,7 +449,7 @@ DWORD WINAPI playAudioThread(LPVOID param)
         // printf("Hellofffplay\n");
         // fflush(stdout);
 
-        Sleep(500);
+        Sleep(100);
     }
     if (!running)
     {
@@ -436,6 +475,7 @@ void stopAudioThread(HANDLE *hThread)
 
 int getElapsedTime()
 {
+
     ma_uint64 time = ma_decoder_get_cursor_in_pcm_frames(&decoder, &cursor);
     time = cursor / decoder.outputSampleRate;
     // printf("Elapsed time: %llu\n", (unsigned long long) time);

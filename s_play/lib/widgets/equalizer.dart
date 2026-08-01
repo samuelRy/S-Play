@@ -29,14 +29,14 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
       valueListenable: currentMusic,
       builder: (context, value, child) {
         return Positioned(
-          bottom: MediaQuery.of(context).size.height * .20,
+          bottom: MediaQuery.of(context).size.height * .28,
           right: 5,
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Color.fromARGB(255, 165, 99, 45)),
               borderRadius: BorderRadius.all(Radius.circular(5.0)),
             ),
-            height: 30 + MediaQuery.of(context).size.height / 3,
+            height: MediaQuery.of(context).size.height / 3,
             child: SizedBox(
               child: Column(
                 children: [
@@ -84,7 +84,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       //                                               subBassGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           color: Colors.transparent,
                           child: Column(
@@ -93,7 +93,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -108,8 +108,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.subBassGain.value
                                         .toStringAsFixed(3),
                                   ),
@@ -122,7 +122,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       // bassGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           color: Colors.transparent,
                           child: Column(
@@ -131,7 +131,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -146,8 +146,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.bassGain.value.toStringAsFixed(
                                       3,
                                     ),
@@ -161,7 +161,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       // lowNidrangeGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           color: Colors.transparent,
                           child: Column(
@@ -170,7 +170,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -186,8 +186,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.lowMidrangeGain.value
                                         .toStringAsFixed(3),
                                   ),
@@ -200,7 +200,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       // midrangeGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           surfaceTintColor: Colors.transparent,
                           color: Colors.transparent,
@@ -210,7 +210,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -225,8 +225,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.midrangeGain.value
                                         .toStringAsFixed(3),
                                   ),
@@ -239,7 +239,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       // upperMidsGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           surfaceTintColor: Colors.transparent,
                           color: Colors.transparent,
@@ -249,7 +249,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -265,8 +265,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.upperMidsGain.value
                                         .toStringAsFixed(3),
                                   ),
@@ -279,7 +279,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       // highMidsGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           surfaceTintColor: Colors.transparent,
                           color: Colors.transparent,
@@ -289,7 +289,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -304,8 +304,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.highMidsGain.value
                                         .toStringAsFixed(3),
                                   ),
@@ -318,7 +318,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                       // trebleGain slider
                       SizedBox(
                         width: 60,
-                        height: 150,
+                        // height: 150,
                         child: Material(
                           color: Colors.transparent,
                           surfaceTintColor: Colors.transparent,
@@ -328,7 +328,7 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                               Transform.rotate(
                                 angle: -math.pi / 2,
                                 child: SizedBox(
-                                  height: 130,
+                                  height: 170,
                                   width: 60,
                                   child: Slider(
                                     padding: EdgeInsets.zero,
@@ -343,8 +343,8 @@ class _EqualizerWidgetState extends State<EqualizerWidget> {
                                               });
                                             }
                                             : null,
-                                    max: 6,
-                                    min: -4,
+                                    max: 10,
+                                    min: -10,
                                     label: cpp.trebleGain.value.toStringAsFixed(
                                       3,
                                     ),

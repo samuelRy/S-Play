@@ -39,9 +39,9 @@ class _MusicControlpanelWidgetState extends State<MusicControlpanelWidget> {
                     decoration: BoxDecoration(
                       color: Color(0xFF523116),
                       shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    
+
                     child: Row(
                       spacing: 3,
                       children: [
@@ -70,7 +70,7 @@ class _MusicControlpanelWidgetState extends State<MusicControlpanelWidget> {
                             color: Color(0xFFCD7B38),
                           ),
                         ),
-              
+
                         SizedBox(
                           width: 15,
                           child: IconButton(
@@ -81,7 +81,11 @@ class _MusicControlpanelWidgetState extends State<MusicControlpanelWidget> {
                               ),
                             ),
                             constraints: BoxConstraints(),
-                            icon: Image.asset("assets/icons/arrow-up.png", width: 10, height: 20),
+                            icon: Image.asset(
+                              "assets/icons/arrow-up.png",
+                              width: 10,
+                              height: 20,
+                            ),
                             onPressed: () {},
                           ),
                         ),
