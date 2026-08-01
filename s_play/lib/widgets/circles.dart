@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'dart:ffi' hide Size;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:s_play/music_data.dart';
 import '../cpp_import_playback.dart' as cpp;
 
 class DeformedCirclePainter extends CustomPainter {

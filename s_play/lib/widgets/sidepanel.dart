@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ffi' hide Size;
 
 import 'package:audiotags/audiotags.dart';
@@ -6,7 +5,6 @@ import 'package:ffi/ffi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:s_play/cpp_import_playback.dart';
 import 'package:s_play/music_data.dart';
 import 'package:s_play/widgets/playbackwidget.dart';
@@ -65,8 +63,8 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
     currentMusic.value = (index, soundPath, img.first.bytes);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      print("$index, $soundPath, ${img.first.bytes.length}");
-      debugPrint("gg$soundPath");
+      // print("$index, $soundPath, ${img.first.bytes.length}");
+      // debugPrint("gg$soundPath");
       Tag? tag = await AudioTags.read(soundPath);
 
       if (mounted) {
@@ -182,7 +180,7 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
 
       if (mounted) {
         setState(() {
-          final box = context.findRenderObject() as RenderBox;
+          // final box = context.findRenderObject() as RenderBox;
 
           // width = box.size.width;
           // print("set");
@@ -200,7 +198,7 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
         // print("Build finished xx ${currentMusic.value.$1} $started $dnStart");
 
         if ((currentMusic.value.$1 != -1) && !started && !dnStart) {
-          print(dnStart);
+          // print(dnStart);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             // print("Build finished yy");
             playCurrent(currentMusic.value.$1, currentMusic.value.$2, [
@@ -679,25 +677,25 @@ class _SidePanelWidgetState extends State<SidePanelWidget> {
                                                                                     context,
                                                                                     index1,
                                                                                   ) {
-                                                                                    print(
-                                                                                      "lah",
-                                                                                    );
-                                                                                    print(
-                                                                                      index,
-                                                                                    );
-                                                                                    print(
-                                                                                      mappedNotifier.value.keys.length,
-                                                                                    );
-                                                                                    print(
-                                                                                      index1,
-                                                                                    );
-                                                                                    print(
-                                                                                      mappedNotifier.value.keys
-                                                                                          .elementAt(
-                                                                                            index,
-                                                                                          )
-                                                                                          .length,
-                                                                                    );
+                                                                                    // print(
+                                                                                    //   "lah",
+                                                                                    // );
+                                                                                    // print(
+                                                                                    //   index,
+                                                                                    // );
+                                                                                    // print(
+                                                                                    //   mappedNotifier.value.keys.length,
+                                                                                    // );
+                                                                                    // print(
+                                                                                    //   index1,
+                                                                                    // );
+                                                                                    // print(
+                                                                                    //   mappedNotifier.value.keys
+                                                                                    //       .elementAt(
+                                                                                    //         index,
+                                                                                    //       )
+                                                                                    //       .length,
+                                                                                    // );
                                                                                     return Column(
                                                                                       children: [
                                                                                         (index1 ==

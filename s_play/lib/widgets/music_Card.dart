@@ -166,7 +166,7 @@ class _MusicCardWidgetState extends State<MusicCardWidget> {
                       child: MaterialButton(
                         onPressed: () {
                           // print("faaaah");
-                          change_music = true;
+                          changeMusic = true;
                           started = false;
                           currentMusic.value = (
                             widget.id,

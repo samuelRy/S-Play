@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ffi' hide Size;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:s_play/cpp_import_playback.dart' as cpp;
 import 'package:s_play/music_data.dart';

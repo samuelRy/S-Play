@@ -7,11 +7,11 @@ import 'package:flutter/services.dart';
 import 'package:s_play/cpp_import_playback.dart';
 import 'package:s_play/music_data.dart';
 import 'package:s_play/widgets/music_card.dart' hide playCurrent;
-import 'package:s_play/widgets/playbackSliderWidget.dart';
+import 'package:s_play/widgets/playback_slider_widget.dart';
 import 'package:s_play/widgets/settings.dart';
 import 'package:s_play/widgets/sidepanel.dart';
 import 'package:s_play/widgets/text_button.dart';
-import 'package:s_play/widgets/updatingSliderWidget.dart';
+import 'package:s_play/widgets/updating_slider_widget.dart';
 
 import '../cpp_import_playback.dart' as cpp;
 
@@ -23,7 +23,7 @@ class PlaybackWidget extends StatefulWidget {
 }
 
 double playCursor = 0;
-bool change_music = false;
+bool changeMusic = false;
 ValueNotifier<double> playCursorNotifier = ValueNotifier<double>(playCursor);
 Timer? timerPlay;
 
@@ -69,9 +69,9 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
         return ValueListenableBuilder(
           valueListenable: currentMusic,
           builder: (context, value, child) {
-            // print("${currentMusic.value.$1} ${!running.value || change_music}");
+            // print("${currentMusic.value.$1} ${!running.value || changeMusic}");
             if (currentMusic.value.$1 != -1) {
-              if ((!running.value) || change_music) {
+              if ((!running.value) || changeMusic) {
                 // debugPrint(started.toString());
                 started = started ? !started : started;
                 // debugPrint(running.value.toString());
@@ -80,8 +80,8 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                   playerRefresher.value = !playerRefresher.value;
                 });
                 // print("Build finished");
-                // initialized = change_music ? true : false;
-                change_music = false;
+                // initialized = changeMusic ? true : false;
+                changeMusic = false;
               }
               // cpp.getElapsedTime().toDouble();
               timerPlay = Timer.periodic(Duration(seconds: 1), (timer) async {
@@ -141,7 +141,7 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                     //         ));
                     late MusicCardWidget music;
                     if (shuffleNotifier.value) {
-                      print(listShuffled[-1]);
+                      // print(listShuffled[-1]);
                       music =
                           musics[(listShuffled[listShuffled[-1]! + 1]) ??
                               0.clamp(0, musics.length)];
@@ -164,7 +164,7 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                               .clamp(0, musics.length)];
                     }
                     // print("ids ${music.id} ");
-                    List<String> tagList = ["artist", "album", "genre"];
+                    // List<String> tagList = ["artist", "album", "genre"];
                     // for (var i = 0; i < 3; i++) {
                     //   if (selected[i + 1] == true) {
                     //     print(
@@ -190,24 +190,24 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
               });
             }
             // MusicCardWidget music = musics[currentMusic.value.$1 + 1];
-            Timer.periodic(Duration(seconds: 2), (_) {
-              List<String> tagList = ["artist", "album", "genre"];
-              String tag = '';
-              for (var i = 0; i < 3; i++) {
-                // print("man ahhh ${selected[i + 1]}");
-                if (selected[i + 1] == true) {
-                  switch (i) {
-                    case 0:
-                      tag = currentMeta.value.$2;
-                      break;
-                    case 1:
-                      tag = currentMeta.value.$3;
-                      break;
-                    case 2:
-                      tag = currentMeta.value.$4;
-                      break;
-                    default:
-                  }
+            // Timer.periodic(Duration(seconds: 2), (_) {
+            //   // List<String> tagList = ["artist", "album", "genre"];
+            //   String tag = '';
+            //   for (var i = 0; i < 3; i++) {
+            //     // print("man ahhh ${selected[i + 1]}");
+            //     if (selected[i + 1] == true) {
+            //       switch (i) {
+            //         case 0:
+            //           tag = currentMeta.value.$2;
+            //           break;
+            //         case 1:
+            //           tag = currentMeta.value.$3;
+            //           break;
+            //         case 2:
+            //           tag = currentMeta.value.$4;
+            //           break;
+            //         default:
+            //       }
                   // print(
                   //   "mapped $tag ${currentMusic.value.$1}",
                   // );
@@ -217,9 +217,9 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                   // mappedNotifier
                   //     .value[mappedNotifier.value.keys.elementAt(currentMusic.value.$1)]
                   //     ?.elementAt(i);
-                }
-              }
-            });
+            //     }
+            //   }
+            // });
 
             // print("${currentMusic.value.$2}  ${currentMeta.value.$1}");
             return Container(
@@ -422,9 +422,9 @@ class _PlaybackWidgetState extends State<PlaybackWidget> {
                                                   bytesData.buffer
                                                       .asUint8List(),
                                                 );
-                                                print(
-                                                  "true Too ${currentMusic.value.$1} ${music.soundPath}",
-                                                );
+                                                // print(
+                                                //   "true Too ${currentMusic.value.$1} ${music.soundPath}",
+                                                // );
                                               }
                                               playerRefresher.value =
                                                   !playerRefresher.value;

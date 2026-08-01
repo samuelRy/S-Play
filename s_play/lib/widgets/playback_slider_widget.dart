@@ -54,7 +54,7 @@ class _PlaybackSliderWidgetState extends State<PlaybackSliderWidget> {
                         Future.delayed(Duration(milliseconds: 200), () {
                           if (!isHovered) return;
                           if (overlay != null) {
-                            Overlay.of(context).didChangeDependencies();
+                            
                             overlay?.remove();
                             overlay?.dispose();
                             overlay = null;
@@ -62,8 +62,8 @@ class _PlaybackSliderWidgetState extends State<PlaybackSliderWidget> {
                           overlay = OverlayEntry(
                             builder: (context) {
                               return Positioned(
-                                bottom: 20,
-                                left: event.localPosition.dx+5,
+                                bottom: 35,
+                                left: event.localPosition.dx+80,
                                 child: Container(
                                   
                                   decoration: BoxDecoration(color: Color(0xff523116), borderRadius: BorderRadius.all(Radius.circular(5.0))),

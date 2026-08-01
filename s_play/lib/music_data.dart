@@ -1,12 +1,8 @@
-import 'dart:typed_data';
 
 import 'package:audiotags/audiotags.dart';
-import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:s_play/cpp_import_playback.dart';
 import 'package:s_play/widgets/music_card.dart';
-import 'package:s_play/widgets/playbackwidget.dart';
 import 'dart:io';
 
 import 'music_listing.dart';

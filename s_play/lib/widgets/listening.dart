@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:s_play/music_data.dart';
-import 'package:s_play/widgets/music_card.dart';
 import 'package:s_play/widgets/sidepanel.dart' ;
 
 class ListeningWidget extends StatefulWidget {

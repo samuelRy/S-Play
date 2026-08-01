@@ -1,6 +1,5 @@
 import 'dart:ffi' as d_ffi;
 import 'package:ffi/ffi.dart';
-import 'package:flutter/material.dart';
 
 typedef InitializeSoundDataC = d_ffi.Int32 Function(d_ffi.Pointer<Utf16>);
 

@@ -1,6 +1,6 @@
 import 'package:audiotags/audiotags.dart';
 import 'package:flutter/material.dart';
-import 'package:s_play/music_data.dart' hide playCurrent;
+import 'package:s_play/music_data.dart';
 import 'package:collection/collection.dart';
 import 'package:s_play/widgets/music_card.dart';
 
@@ -101,7 +101,7 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                     ? () async {
                       trackMusics = [];
                       selected = widget.updateSelected(widget.index);
-                      late Iterable<int> indexes;
+                      // late Iterable<int> indexes;
                       List<int> listIndexes = [];
                       if (widget.sortLabel == "all") {
                         mappedNotifier.value = {};
@@ -205,7 +205,7 @@ class _TextButtonWidgetState extends State<TextButtonWidget> {
                                 id: i,
                               ),
                             );
-                            indexes = listIndexes;
+                            // indexes = listIndexes;
 
                             i++;
                             // print(i);

@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:s_play/music_data.dart';
 
 class BackgroundWidget extends StatefulWidget {
